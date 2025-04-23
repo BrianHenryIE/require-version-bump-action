@@ -1,0 +1,98 @@
+name: 'Require Version Bump'
+description: 'Checks is the CHANGELOG.md version greater than the latest release version.'
+
+# Hypothesis:
+#
+# A PR must have a CHANGELOG.md entry with an incremented version number before it can be merged.
+# unless
+# main/master already has a CHANGELOG.md with a version number higher than the latest release.
+
+# Finds the first x.y.z semver version in CHANGELOG.md
+# compares to
+# `gh release list --json name,isLatest`
+# Fails if the version in CHANGELOG.md is not greater than the latest release version.
+
+# Setup:
+#
+#    - name: Require Version Bump
+#      id: require-version-bump
+#      uses: brianhenryie/require-version-bump@v1
+#      with:
+#        fail: true
+
+inputs:
+  fail:
+    description: 'Should the workflow exit if the version is not greater?'
+    required: true
+    default: "false"
+outputs:
+  changelog-is-greater:
+    # Use e.g. ${{ steps.require-version-bump.outputs.changelog-is-greater }}
+    description: "Boolean as int indicating is the version in the CHANGELOG.md is greater than the latest release version."
+    value: ${{ steps.semver_compare_2.outputs.compare-value }}
+runs:
+  using: "composite"
+  steps:
+
+    # I guess this is so we can access the checked out repo in the calling workflow.
+    - name: Set GitHub Path
+      run: echo "$GITHUB_ACTION_PATH" >> $GITHUB_PATH
+      shell: bash
+      env:
+        GITHUB_ACTION_PATH: ${{ github.action_path }}
+
+#    - name: Checkout repository
+#      uses: actions/checkout@v4
+
+    - name: Determine `main` or `master` branch
+      id: branch
+      run: |
+        if [ $(git rev-parse --verify main) ]; then
+          echo "MAIN_BRANCH=main" >> $GITHUB_ENV;
+        else
+          echo "MAIN_BRANCH=master" >> $GITHUB_ENV;
+        fi;
+        echo "MAIN_BRANCH=${{ env.MAIN_BRANCH }}";
+
+    - name: Get PR CHANGELOG.md version
+      run: |
+        echo "PR_CHANGELOG_VERSION=$(cat CHANGELOG.md | grep -E -o -m 1 '[0-9]+\.[0-9]+\.[0.9]+')" >> $GITHUB_ENV;
+        echo "PR_CHANGELOG_VERSION=${{ env.PR_CHANGELOG_VERSION }}"
+
+    - name: Get master CHANGELOG.md version
+      run: |
+        echo "MAIN_CHANGELOG_VERSION=$(git show ${{ env.MAIN_BRANCH }}:CHANGELOG.md | grep -E -o -m 1 '[0-9]+\.[0-9]+\.[0.9]+')" >> $GITHUB_ENV;
+        echo "MAIN_CHANGELOG_VERSION=${{ env.MAIN_CHANGELOG_VERSION }}";
+
+    - name: Compare `main` and PR CHANGELOG.md versions
+      id: semver_compare_1
+      uses: samcarswell/semver-compare-action@1.0
+      with:
+        left-semver: ${{ env.MAIN_CHANGELOG_VERSION }}
+        right-semver: ${{ env.PR_CHANGELOG_VERSION }}
+
+    - name: Compare Output
+      run: |
+        if [ ${{ steps.semver_compare_1.outputs.compare-value }} ]; then
+          echo "CHANGELOG_VERSION=${{ env.MAIN_CHANGELOG_VERSION }}" >> $GITHUB_ENV;
+        else
+          echo "CHANGELOG_VERSION=${{ env.PR_CHANGELOG_VERSION }}" >> $GITHUB_ENV;
+        fi;
+
+    # Use gh cli to get the latest release version, strip any leading 'v'.
+    - name: Get latest release version
+      id: latest_release_version
+      run: |
+        echo "LATEST_RELEASE_VERSION=$(gh release list --json name,isLatest --jq '.[] | select(.isLatest)|.name') | tr -d 'v'" >> $GITHUB_ENV;
+        echo "LATEST_RELEASE_VERSION=${{ env.LATEST_RELEASE_VERSION }}"
+
+    - name: Compare Release and PR CHANGELOG.md versions
+      id: semver_compare_2
+      uses: samcarswell/semver-compare-action@1.0
+      with:
+        left-semver: ${{ env.CHANGELOG_VERSION }}
+        right-semver: ${{ env.LATEST_RELEASE_VERSION }}
+
+    - name: Fail if PR CHANGELOG.md version is not greater than latest release
+      if: ${{ steps.semver_compare_2.outputs.compare-value && inputs.fail }}
+      run: exit 1
