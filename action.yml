@@ -46,6 +46,7 @@ runs:
 
     - name: Determine `main` or `master` branch
       id: branch
+      shell: bash
       run: |
         if [ $(git rev-parse --verify main) ]; then
           echo "MAIN_BRANCH=main" >> $GITHUB_ENV;
@@ -55,11 +56,13 @@ runs:
         echo "MAIN_BRANCH=${{ env.MAIN_BRANCH }}";
 
     - name: Get PR CHANGELOG.md version
+      shell: bash
       run: |
         echo "PR_CHANGELOG_VERSION=$(cat CHANGELOG.md | grep -E -o -m 1 '[0-9]+\.[0-9]+\.[0.9]+')" >> $GITHUB_ENV;
         echo "PR_CHANGELOG_VERSION=${{ env.PR_CHANGELOG_VERSION }}"
 
     - name: Get master CHANGELOG.md version
+      shell: bash
       run: |
         echo "MAIN_CHANGELOG_VERSION=$(git show ${{ env.MAIN_BRANCH }}:CHANGELOG.md | grep -E -o -m 1 '[0-9]+\.[0-9]+\.[0.9]+')" >> $GITHUB_ENV;
         echo "MAIN_CHANGELOG_VERSION=${{ env.MAIN_CHANGELOG_VERSION }}";
@@ -72,6 +75,7 @@ runs:
         right-semver: ${{ env.PR_CHANGELOG_VERSION }}
 
     - name: Compare Output
+      shell: bash
       run: |
         if [ ${{ steps.semver_compare_1.outputs.compare-value }} ]; then
           echo "CHANGELOG_VERSION=${{ env.MAIN_CHANGELOG_VERSION }}" >> $GITHUB_ENV;
@@ -82,6 +86,7 @@ runs:
     # Use gh cli to get the latest release version, strip any leading 'v'.
     - name: Get latest release version
       id: latest_release_version
+      shell: bash
       run: |
         echo "LATEST_RELEASE_VERSION=$(gh release list --json name,isLatest --jq '.[] | select(.isLatest)|.name') | tr -d 'v'" >> $GITHUB_ENV;
         echo "LATEST_RELEASE_VERSION=${{ env.LATEST_RELEASE_VERSION }}"
@@ -95,4 +100,5 @@ runs:
 
     - name: Fail if PR CHANGELOG.md version is not greater than latest release
       if: ${{ steps.semver_compare_2.outputs.compare-value && inputs.fail }}
+      shell: bash
       run: exit 1
