@@ -99,6 +99,6 @@ runs:
         right-semver: ${{ env.LATEST_RELEASE_VERSION }}
 
     - name: Fail if PR CHANGELOG.md version is not greater than latest release
-      if: ${{ steps.semver_compare_2.outputs.compare-value && inputs.fail == 'true' }}
+      if: ${{ steps.semver_compare_2.outputs.compare-value != 1 && inputs.fail == 'true' }}
       shell: bash
       run: exit 1
