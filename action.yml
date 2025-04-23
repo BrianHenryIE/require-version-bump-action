@@ -48,7 +48,7 @@ runs:
       id: branch
       shell: bash
       run: |
-        if [ $(git rev-parse --verify main) ]; then
+        if [ $(git branch --list main) ]; then
           echo "MAIN_BRANCH=main" >> $GITHUB_ENV;
         else
           echo "MAIN_BRANCH=master" >> $GITHUB_ENV;
