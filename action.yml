@@ -23,8 +23,9 @@ description: 'Checks is the CHANGELOG.md version greater than the latest release
 inputs:
   fail:
     description: 'Should the workflow exit if the version is not greater?'
+    type: boolean
     required: true
-    default: "false"
+    default: false
 outputs:
   changelog-is-greater:
     # Use e.g. ${{ steps.require-version-bump.outputs.changelog-is-greater }}
@@ -99,6 +100,6 @@ runs:
         right-semver: ${{ env.LATEST_RELEASE_VERSION }}
 
     - name: Fail if PR CHANGELOG.md version is not greater than latest release
-      if: ${{ steps.semver_compare_2.outputs.compare-value != 1 && inputs.fail == 'true' }}
+      if: ${{ steps.semver_compare_2.outputs.compare-value != 1 && inputs.fail }}
       shell: bash
       run: exit 1
