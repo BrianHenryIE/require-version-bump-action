@@ -58,6 +58,7 @@ runs:
       uses: tj-actions/branch-names@v7
 
     - name: Show the current branch name
+      shell: bash
       run: |
         echo "Current branch: ${{ steps.branch-name.outputs.current_branch }}"
 
