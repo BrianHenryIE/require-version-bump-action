@@ -60,7 +60,7 @@ jobs:
       - name: "Do something with the result"
         # `1` means the changelog is greater than the latest release version; `0` is equal; `-1` is less
         if: ${{ steps.require-version-bump.outputs.changelog-is-greater != 1 }} 
-        run: echo "The changelog has been incremented"
+        run: echo "The changelog has not been incremented"
 ```
 ## The Problem
 
