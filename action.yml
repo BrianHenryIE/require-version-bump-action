@@ -65,7 +65,7 @@ runs:
     - name: Get PR CHANGELOG.md version
       shell: bash
       run: |
-        echo "PR_CHANGELOG_VERSION=$(echo $(git show refs/heads/${{ steps.branch-name.outputs.current_branch }}:CHANGELOG.md || echo '0.0.0') | grep -E -o -m 1 '[0-9]+\.[0-9]+\.[0.9]+')" >> $GITHUB_ENV;
+        echo "PR_CHANGELOG_VERSION=$(echo $(git show :CHANGELOG.md || echo '0.0.0') | grep -E -o -m 1 '[0-9]+\.[0-9]+\.[0.9]+')" >> $GITHUB_ENV;
         echo "PR_CHANGELOG_VERSION=$(echo $CHANGELOG_CONTENT | grep -E -o -m 1 '[0-9]+\.[0-9]+\.[0.9]+')";
         echo "PR_CHANGELOG_VERSION=$PR_CHANGELOG_VERSION" >> $GITHUB_ENV;
         echo "PR_CHANGELOG_VERSION=${{ env.PR_CHANGELOG_VERSION }}"
