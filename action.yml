@@ -59,13 +59,15 @@ runs:
     - name: Get PR CHANGELOG.md version
       shell: bash
       run: |
-        echo "PR_CHANGELOG_VERSION=$(cat CHANGELOG.md | grep -E -o -m 1 '[0-9]+\.[0-9]+\.[0.9]+')" >> $GITHUB_ENV;
+        if [ ! -f CHANGELOG.md ]; then CHANGELOG_CONTENT=$(cat CHANGELOG.md); else; CHANGELOG_CONTENT='0.0.0'; fi;
+        echo "PR_CHANGELOG_VERSION=$(echo $CHANGELOG_CONTENT | grep -E -o -m 1 '[0-9]+\.[0-9]+\.[0.9]+')";
+        echo "PR_CHANGELOG_VERSION=$PR_CHANGELOG_VERSION" >> $GITHUB_ENV;
         echo "PR_CHANGELOG_VERSION=${{ env.PR_CHANGELOG_VERSION }}"
 
     - name: Get master CHANGELOG.md version
       shell: bash
       run: |
-        echo "MAIN_CHANGELOG_VERSION=$(git show ${{ env.MAIN_BRANCH }}:CHANGELOG.md | grep -E -o -m 1 '[0-9]+\.[0-9]+\.[0.9]+')" >> $GITHUB_ENV;
+        echo "MAIN_CHANGELOG_VERSION=$($(git show ${{ env.MAIN_BRANCH }}:CHANGELOG.md || echo '0.0.0') | grep -E -o -m 1 '[0-9]+\.[0-9]+\.[0.9]+')" >> $GITHUB_ENV;
         echo "MAIN_CHANGELOG_VERSION=${{ env.MAIN_CHANGELOG_VERSION }}";
 
     - name: Compare `main` and PR CHANGELOG.md versions
