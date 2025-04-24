@@ -67,7 +67,7 @@ runs:
     - name: Get master CHANGELOG.md version
       shell: bash
       run: |
-        echo "MAIN_CHANGELOG_VERSION=$($(git show ${{ env.MAIN_BRANCH }}:CHANGELOG.md || echo '0.0.0') | grep -E -o -m 1 '[0-9]+\.[0-9]+\.[0.9]+')" >> $GITHUB_ENV;
+        echo "MAIN_CHANGELOG_VERSION=$(echo $(git show ${{ env.MAIN_BRANCH }}:CHANGELOG.md || echo '0.0.0') | grep -E -o -m 1 '[0-9]+\.[0-9]+\.[0.9]+')" >> $GITHUB_ENV;
         echo "MAIN_CHANGELOG_VERSION=${{ env.MAIN_CHANGELOG_VERSION }}";
 
     - name: Compare `main` and PR CHANGELOG.md versions
