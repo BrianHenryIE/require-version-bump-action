@@ -88,7 +88,7 @@ runs:
     - name: Compare Output
       shell: bash
       run: |
-        if [ ${{ steps.semver_compare_1.outputs.compare-value }} ]; then
+        if [ ${{ steps.semver_compare_1.outputs.compare-value }} == 1 ]; then
           echo "CHANGELOG_VERSION=${{ env.MAIN_CHANGELOG_VERSION }}" >> $GITHUB_ENV;
         else
           echo "CHANGELOG_VERSION=${{ env.PR_CHANGELOG_VERSION }}" >> $GITHUB_ENV;
